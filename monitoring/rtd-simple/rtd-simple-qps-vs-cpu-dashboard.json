@@ -1,0 +1,114 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_METRICS",
+      "label": "Metrics (Prometheus)",
+      "description": "Prometheus data source that scrapes the container /metrics endpoint",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" },
+    { "type": "panel", "id": "xychart", "name": "XY Chart", "version": "" }
+  ],
+  "title": "rtd-simple QPS vs CPU (per pod)",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "QPS vs CPU % per pod (scatter) — points on a line = traffic-driven; points above the line = less efficient",
+      "type": "xychart",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "custom": { "show": "points", "pointSize": { "fixed": 8 } } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "QPS" }, "properties": [ { "id": "unit", "value": "reqps" } ] },
+          { "matcher": { "id": "byName", "options": "CPU %" }, "properties": [ { "id": "unit", "value": "percent" } ] }
+        ]
+      },
+      "options": {
+        "seriesMapping": "auto",
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rtd_simple_cpu_seconds_total[5m])) / sum by (pod) (rtd_simple_cpu_limit_cores) * 100", "format": "table", "instant": true },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m]))", "format": "table", "instant": true }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "pod", "mode": "outer" } },
+        { "id": "organize", "options": { "renameByName": { "Value #A": "CPU %", "Value #B": "QPS" }, "indexByName": { "pod": 0, "QPS": 1, "CPU %": 2 } } }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "CPU per request (CPU ms / request) per pod — the normalizer; flat/overlapping lines = efficiency is uniform, separated bands = efficiency differs (version or node)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "ms", "min": 0, "decimals": 3, "custom": { "drawStyle": "line", "fillOpacity": 0 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "mean"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rtd_simple_cpu_seconds_total[5m])) / sum by (pod) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m])) * 1000", "legendFormat": "{{pod}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "QPS per pod",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 11 },
+      "fieldConfig": { "defaults": { "unit": "reqps", "min": 0, "custom": { "drawStyle": "line", "fillOpacity": 5 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "mean"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m]))", "legendFormat": "{{pod}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Per pod: QPS, CPU %, CPU ms/req, version (sortable)",
+      "type": "table",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 11 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "QPS" }, "properties": [ { "id": "unit", "value": "reqps" }, { "id": "decimals", "value": 0 } ] },
+          { "matcher": { "id": "byName", "options": "CPU %" }, "properties": [ { "id": "unit", "value": "percent" }, { "id": "decimals", "value": 1 }, { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] } } ] },
+          { "matcher": { "id": "byName", "options": "CPU ms/req" }, "properties": [ { "id": "unit", "value": "ms" }, { "id": "decimals", "value": 3 } ] }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [ { "displayName": "CPU %", "desc": true } ] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m]))", "format": "table", "instant": true },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rtd_simple_cpu_seconds_total[5m])) / sum by (pod) (rtd_simple_cpu_limit_cores) * 100", "format": "table", "instant": true },
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod) (rate(rtd_simple_cpu_seconds_total[5m])) / sum by (pod) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m])) * 1000", "format": "table", "instant": true },
+        { "refId": "D", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (pod, app_version) (rtd_simple_build_info)", "format": "table", "instant": true }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "pod", "mode": "outer" } },
+        { "id": "organize", "options": { "renameByName": { "Value #A": "QPS", "Value #B": "CPU %", "Value #C": "CPU ms/req", "app_version": "version" }, "excludeByName": { "Value #D": true, "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true, "model_version": true }, "indexByName": { "pod": 0, "version": 1, "QPS": 2, "CPU %": 3, "CPU ms/req": 4 } } }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "CPU per request by NODE — if the cheap/expensive bands sort by node, it is hardware; if they do not, it is contention (needs kube_pod_info)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 20 },
+      "fieldConfig": { "defaults": { "unit": "ms", "min": 0, "decimals": 3, "custom": { "drawStyle": "line", "fillOpacity": 0 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "mean"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "sum by (node) (rate(rtd_simple_cpu_seconds_total[5m]) * on(pod) group_left(node) kube_pod_info) / sum by (node) (rate(rpc_server_duration_count{rpc_method=\"GetMutations\"}[5m]) * on(pod) group_left(node) kube_pod_info) * 1000", "legendFormat": "{{node}}" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_METRICS",
+      "label": "Metrics (Prometheus)",
+      "description": "Prometheus data source that scrapes the container /metrics endpoint",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" }
+  ],
+  "title": "rtd-simple CPU distribution (per pod)",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU % per pod (one line per pod)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "custom": { "drawStyle": "line", "fillOpacity": 5 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max", "mean"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+          "expr": "100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores",
+          "legendFormat": "{{pod}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "CPU % per pod (current, sorted)",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] } }, "overrides": [] },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] }, "sortBy": "Value", "sortDescending": true },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+          "expr": "100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores",
+          "legendFormat": "{{pod}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "CPU % spread (max - min across pods)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 15 }, { "color": "red", "value": 30 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+          "expr": "max(100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores) - min(100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "CPU % stddev across pods",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+          "expr": "stddev(100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Pods (count) and min / max CPU %",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 13 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [ { "matcher": { "id": "byName", "options": "pods" }, "properties": [ { "id": "unit", "value": "short" } ] } ] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "none", "textMode": "value_and_name" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "count(rtd_simple_cpu_limit_cores)", "legendFormat": "pods" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "min(100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores)", "legendFormat": "min" },
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" }, "expr": "max(100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores)", "legendFormat": "max" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "CPU % distribution over time (heatmap of pods)",
+      "type": "heatmap",
+      "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 17 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "options": { "calculate": true, "yAxis": { "unit": "percent", "min": 0 }, "color": { "scheme": "Oranges", "mode": "scheme" }, "cellValues": {} },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${DS_METRICS}" },
+          "expr": "100 * rate(rtd_simple_cpu_seconds_total[5m]) / rtd_simple_cpu_limit_cores",
+          "legendFormat": "{{pod}}",
+          "format": "time_series"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "name": "rtd-simple",
+    "version": "2026.09.30.1",
+    "description": "No-op ARTF RTBExtensionPoint container that validates the Index Cloud onboarding pipeline end to end. Returns zero mutations on every request. Checks for a delivered model at MODEL_PATH and reports presence via metrics; does not read the model data. Logs errors only by default (per-request logging is opt-in via RTD_LOG_SAMPLE_N) and self-reports CPU, memory, and response-time metrics.",
+    "maintainers": [
+      {
+        "name": "Index Exchange",
+        "email": "no-reply@indexexchange.com"
+      }
+    ]
+  },
+  "endpoints": {
+    "rtbextensionpoint": {
+      "version": "v1",
+      "rpcs": [
+        {
+          "rpc": "com.iabtechlab.bidstream.mutation.services.v1.RTBExtensionPoint/GetMutations",
+          "auction_lifecycle": {
+            "publisher_bid_request": {
+              "weight": 0.5,
+              "intents": []
+            },
+            "dsp_bid_response": {
+              "weight": 0.5,
+              "intents": []
+            }
+          }
+        }
+      ]
+    },
+    "metrics": {
+      "protocol": "http",
+      "path": "/metrics",
+      "description": "Standard Prometheus metrics, including the required rpc_server_duration histogram with seconds buckets.",
+      "type": "prometheus",
+      "definitions": [
+        {
+          "name": "rpc_server_duration",
+          "metric_type": "histogram",
+          "fields": ["rpc_system", "rpc_grpc_status_code", "rpc_method", "rpc_service", "error_type"],
+          "description": "Required Index metric: inbound RPC handler duration, seconds buckets (0.001 to 0.010)."
+        },
+        {
+          "name": "rtd_simple_response_seconds_avg",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "Average GetMutations handler duration in seconds (convenience; percentiles come from rpc_server_duration)."
+        },
+        {
+          "name": "rtd_simple_cpu_seconds_total",
+          "metric_type": "counter",
+          "fields": [],
+          "description": "Cumulative container CPU time in seconds, read from the cgroup."
+        },
+        {
+          "name": "rtd_simple_cpu_limit_cores",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "CPU allocation in cores (denominator for CPU percent)."
+        },
+        {
+          "name": "rtd_simple_memory_bytes",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "Current container memory usage in bytes, read from the cgroup."
+        },
+        {
+          "name": "rtd_simple_memory_limit_bytes",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "Memory allocation in bytes (denominator for memory percent)."
+        },
+        {
+          "name": "rtd_simple_memory_percent",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "Container memory usage as a percent of its limit (0 to 100)."
+        },
+        {
+          "name": "rtd_simple_build_info",
+          "metric_type": "gauge",
+          "fields": ["app_version", "model_version"],
+          "description": "Build/version info; model_version reflects the delivered model manifest, if any."
+        },
+        {
+          "name": "rtd_simple_model_present",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "1 if a model manifest was found at MODEL_PATH at startup, 0 otherwise. Presence only; the container does not read the model data."
+        },
+        {
+          "name": "rtd_simple_ready",
+          "metric_type": "gauge",
+          "fields": [],
+          "description": "1 when the container is ready to serve traffic, 0 otherwise."
+        }
+      ]
+    },
+    "health": {
+      "liveness": {
+        "protocol": "grpc",
+        "rpc": "grpc.health.v1.Health/Check",
+        "description": "Liveness probe.",
+        "initialDelaySeconds": 10,
+        "periodSeconds": 5,
+        "timeoutSeconds": 2,
+        "failureThreshold": 3
+      },
+      "readiness": {
+        "protocol": "grpc",
+        "rpc": "grpc.health.v1.Health/Check",
+        "description": "Readiness probe. Per the Index Cloud KB, readiness uses the same grpc.health.v1.Health protocol as liveness, on GRPC_PORT, not a separate HTTP path.",
+        "initialDelaySeconds": 5,
+        "periodSeconds": 5,
+        "timeoutSeconds": 1,
+        "failureThreshold": 3
+      }
+    }
+  },
+  "security": {
+    "networkPolicies": {
+      "egress": {
+        "rules": []
+      }
+    }
+  },
+  "resources": {
+    "cpu": "1000m",
+    "memory": "2Gi",
+    "target_qps": 4000
+  },
+  "env": [
+    {
+      "name": "MODEL_PATH",
+      "value": "/models",
+      "description": "Directory where model data is mounted; manifest.json and model_data/ sit at its top level. Optional: rtd-simple runs as a no-op with an empty mount and only checks for presence, it does not read model data.",
+      "required": false
+    },
+    {
+      "name": "RTD_LOG_SAMPLE_N",
+      "value": "0",
+      "description": "Verbose per-request logging. 0 (default) logs errors only; N greater than 0 logs 1 of every N GetMutations calls. Baked image default; Index does not set this at deploy time.",
+      "required": false
+    }
+  ],
+  "dependencies": {
+    "artifacts": [
+      {
+      }
+    ]
+  }
+}
