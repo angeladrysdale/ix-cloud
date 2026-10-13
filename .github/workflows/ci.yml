@@ -1,0 +1,41 @@
+# CI for the ix-cloud monorepo: build and validate every example container on each
+# PR. It BUILDS and VALIDATES only and never publishes — pushing a compliant CalVer
+# tag auto-deploys to Index Cloud production, so publishing stays a deliberate manual
+# step (`make release`). Do not add a push/deploy step or registry credentials here.
+#
+# Each example runs its own `make verify` (build -> manifest-vs-image -> trivy ->
+# endpoint/no-op contract), the same checks the sample ships for partners. Add a new
+# example to the matrix below to cover it.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [rtd-simple]
+    defaults:
+      run:
+        working-directory: examples/${{ matrix.example }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: examples/${{ matrix.example }}/go.mod
+      - name: Vet, build, test
+        run: |
+          go vet ./...
+          go build ./...
+          go test ./...
+      - name: Install grpcurl
+        run: go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+      - name: Verify (build + manifest-vs-image + trivy + endpoints; no publish)
+        run: make verify

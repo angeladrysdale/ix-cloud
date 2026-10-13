@@ -39,13 +39,23 @@ Each example, tool, and dashboard set is self-contained and has its own `README.
   [`monitoring/`](monitoring/) — peak/baseline/distribution views built on the
   metrics these containers expose.
 
+## Continuous integration
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) builds and validates every
+example on each pull request by running that example's `make verify` (build ->
+manifest-vs-image -> `trivy` CVSS-9 scan -> endpoint/no-op contract). It **never
+publishes** — pushing a compliant CalVer tag auto-deploys to Index Cloud production,
+so that stays a deliberate manual step (`make release`). Each example also ships its
+own copy of this workflow so it keeps working after a partner copies it out.
+
 ## Adding a new example, tool, or dashboard set
 
 Put it in its own subfolder under `examples/`, `tools/`, or `monitoring/`, with a
 `README.md` that explains what it is and how to use it. Keep examples self-contained
-so they can be copied out and built on their own. Never commit internal-only material
-(partner config, credentials, private deploy notes) — see each example's
-`.dockerignore`.
+so they can be copied out and built on their own. For a new example, add its folder
+name to the matrix in [.github/workflows/ci.yml](.github/workflows/ci.yml) so CI
+builds and validates it. Never commit internal-only material (partner config,
+credentials, private deploy notes) — see each example's `.dockerignore`.
 
 ## Licensing
 

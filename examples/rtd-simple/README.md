@@ -214,6 +214,25 @@ binary is built with Go 1.25.13 and patched grpc/protobuf, so `govulncheck` also
 reports none). Choosing `scratch` keeps the vulnerability surface minimal, per the
 guidance to pick a minimal base image.
 
+## Continuous integration
+
+`make verify` runs the full pre-publish check suite against a locally built image and
+**never publishes**: it builds the image, validates that the image matches
+`manifest/manifest.json` (labels, declared endpoints, and the required
+`rpc_server_duration` metric contract), runs a `trivy` CVSS-9 vulnerability scan, and
+exercises both auction lifecycles against the no-op contract. It needs only Docker,
+Go, Python 3, and `grpcurl`.
+
+A ready-to-run GitHub Actions workflow ships at
+[.github/workflows/ci.yml](.github/workflows/ci.yml) and calls `make verify` on every
+pull request, so a copy of this sample keeps itself honest against the contract as you
+replace the no-op with real logic. Because `make verify` is a plain Make target, the
+same checks run on any CI system or on your laptop — just run `make verify`.
+
+Publishing is deliberately kept out of CI: pushing a compliant CalVer tag auto-deploys
+to Index Cloud production (see below), so the push lives only in the manual, gated
+`make release` path. Do not add a push/deploy step or registry credentials to CI.
+
 ## Publishing to Docker Hub for Index Cloud
 
 Index pulls your container from Docker Hub and auto-deploys it. A **public** repo
