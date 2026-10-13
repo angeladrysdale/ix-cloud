@@ -1,0 +1,13 @@
+# OS / editor
+.DS_Store
+*.log
+
+# Go build output
+/bin/
+/out/
+*.test
+*.out
+
+# Python
+__pycache__/
+*.pyc

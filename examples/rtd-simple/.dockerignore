@@ -1,0 +1,9 @@
+# Keep the build context (and the source embedded at /usr/src/rtd-simple) lean.
+# If you add internal-only material to this sample (private config, deploy notes),
+# exclude it here so it is never shipped in the image.
+.git
+.gitignore
+.DS_Store
+**/.DS_Store
+*.log
+testdata/

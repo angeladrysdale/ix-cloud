@@ -1,0 +1,6 @@
+# Local build output (the image build uses Docker; local `go build` lands here)
+/out
+/server
+*.test
+*.log
+.DS_Store

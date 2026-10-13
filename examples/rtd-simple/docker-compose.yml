@@ -1,0 +1,35 @@
+# Local run mirroring the Index Cloud runtime contract: non-root 1000:1000,
+# read-only root filesystem, ports/paths from env. This container is a no-op, so
+# it does not use model data, but it checks for a delivered model at MODEL_PATH
+# and reports it. ./models ships a reference model (manifest.json + model_data/ at
+# the top level, mirroring how Index mounts a versioned folder's contents at
+# MODEL_PATH), so the presence check reports it at startup and via the
+# rtd_simple_model_present metric. Models are optional; the container still runs as
+# a no-op if the mount is empty.
+services:
+  rtd-simple:
+    build:
+      context: .
+      args:
+        VERSION: v0.1.0-local
+    image: rtd-simple:local
+    container_name: rtd-simple
+    platform: linux/amd64
+    environment:
+      GRPC_PORT: "50051"
+      SERVER_PORT: "8080"
+      MODEL_PATH: "/models"
+      APP_VERSION: "v0.1.0-local"
+      RTD_LOG_SAMPLE_N: "0"   # 0 = errors only (default); set N to log 1-in-N requests for local debugging
+    ports:
+      - "50051:50051"  # gRPC RTBExtensionPoint + gRPC health
+      - "8080:8080"    # HTTP /metrics, /heartbeat, /healthcheck
+    volumes:
+      - ./models:/models:ro
+    read_only: true
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
