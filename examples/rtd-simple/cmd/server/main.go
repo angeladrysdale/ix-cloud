@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Command rtd-simple is a no-op Index Cloud gRPC RTD service for exercising the
 // onboarding process. It implements the ARTF RTBExtensionPoint GetMutations RPC

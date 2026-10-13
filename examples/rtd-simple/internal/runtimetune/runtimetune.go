@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Package runtimetune applies Go runtime settings derived from the container's
 // cgroup limits at startup, to cut the allocation-driven GC overhead and the

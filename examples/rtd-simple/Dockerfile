@@ -53,7 +53,7 @@ COPY --from=build --chown=1000:1000 /out/models /models
 # read-only image content, not used at runtime (the entrypoint is the compiled
 # binary); extract it with `docker cp <container>:/usr/src/rtd-simple ./src`.
 # .dockerignore keeps internal-only material (SUMMARY.md, Documentation/) out.
-# Licensed MIT-0 (see LICENSE): free to reuse without attribution.
+# Licensed Apache-2.0 (see LICENSE).
 COPY . /usr/src/rtd-simple
 
 USER 1000:1000

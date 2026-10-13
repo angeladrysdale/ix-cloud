@@ -49,7 +49,6 @@ so they can be copied out and built on their own. Never commit internal-only mat
 
 ## Licensing
 
-This repository is licensed **Apache-2.0** (see [`LICENSE`](LICENSE)). Individual
-examples may carry a more permissive license for reuse — e.g. `examples/rtd-simple`
-is **MIT-0** (sample code, reuse without attribution), noted in its own `LICENSE`.
-When an example has its own `LICENSE`, that license governs that example.
+This repository and its examples are licensed **Apache-2.0** (see
+[`LICENSE`](LICENSE)). Each example also carries its own `LICENSE`; where present,
+that license governs the example (currently all Apache-2.0).

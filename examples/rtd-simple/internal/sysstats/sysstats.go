@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Package sysstats reads this container's own CPU and memory usage from the
 // kernel cgroup virtual files. It has no dependencies and does no writes, so it

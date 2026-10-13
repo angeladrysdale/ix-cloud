@@ -244,10 +244,10 @@ This is **sample code**, published as a reference for building Index Cloud RTD
 containers. It is provided **as is**, with no warranty and no liability, and it is
 not a supported product.
 
-Licensed under **MIT No Attribution (MIT-0)**: you may freely use, copy, modify,
-and redistribute it, including in your own containers, **without attribution**. See
-[LICENSE](LICENSE). Every source file carries an `SPDX-License-Identifier: MIT-0`
-header, and the image is labelled `org.opencontainers.image.licenses=MIT-0`.
+Licensed under **Apache-2.0**: you may freely use, copy, modify,
+and redistribute it, including in your own containers, subject to the Apache License, Version 2.0. See
+[LICENSE](LICENSE). Every source file carries an `SPDX-License-Identifier: Apache-2.0`
+header, and the image is labelled `org.opencontainers.image.licenses=Apache-2.0`.
 
 ### Build upon it: the source ships in the image
 

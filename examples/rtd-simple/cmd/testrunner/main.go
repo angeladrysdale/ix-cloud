@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Command testrunner is a local conformance harness for the rtd-simple no-op RTD
 // service. It checks the onboarding-relevant contract from "Validating and

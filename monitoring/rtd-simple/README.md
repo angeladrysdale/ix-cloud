@@ -38,6 +38,6 @@ them.
 
 ## Reuse
 
-These dashboards are part of the rtd-simple sample and are licensed **MIT-0** (see
+These dashboards are part of the rtd-simple sample and are licensed **Apache-2.0** (see
 [`examples/rtd-simple/LICENSE`](../../examples/rtd-simple/LICENSE)): use, modify, and
-redistribute them freely, without attribution.
+redistribute them under the Apache License, Version 2.0.

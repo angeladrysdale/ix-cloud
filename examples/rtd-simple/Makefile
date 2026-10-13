@@ -15,12 +15,12 @@ MINIFY_MANIFEST = python3 -c 'import json;print(json.dumps(json.load(open("manif
 # alongside the agent-manifest label. Bump when the manifest format changes.
 MANIFEST_VERSION ?= 1.0
 
-# Standard OCI image labels. The license is MIT-0 (sample code, no attribution
+# Standard OCI image labels. The license is Apache-2.0 (sample code, no attribution
 # required); the source is also embedded in the image at /usr/src/rtd-simple.
 OCI_LABELS = \
-	--label "org.opencontainers.image.licenses=MIT-0" \
+	--label "org.opencontainers.image.licenses=Apache-2.0" \
 	--label "org.opencontainers.image.title=rtd-simple" \
-	--label "org.opencontainers.image.description=No-op Index Cloud ARTF sample container. Go source embedded at /usr/src/rtd-simple (MIT-0, reuse without attribution)."
+	--label "org.opencontainers.image.description=No-op Index Cloud ARTF sample container. Go source embedded at /usr/src/rtd-simple (Apache-2.0)."
 
 # Release (Docker Hub publish for Index Cloud). REPO is a public repo by default:
 # these test/example containers are non-confidential, so Index pulls anonymously

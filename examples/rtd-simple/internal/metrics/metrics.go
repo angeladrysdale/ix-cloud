@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Package metrics implements the Prometheus /metrics endpoint required by Index
 // Cloud. Per "Validating and deploying your container → Configure your metrics

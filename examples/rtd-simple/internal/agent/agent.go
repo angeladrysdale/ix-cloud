@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-0
+// SPDX-License-Identifier: Apache-2.0
 
 // Package agent implements a no-op RTBExtensionPoint used to exercise the Index
 // Cloud onboarding process end to end.
