@@ -9,6 +9,19 @@ you walk through onboarding.
 Use it to validate an onboarding run end to end (image build, deploy, health,
 metrics, live traffic) without any decisioning risk.
 
+## Prerequisites
+
+- **Docker** — required to build and run the container (`make build`, `make up`).
+- **Go** and **Python 3** — required for the tests and checks (`make test`,
+  `make verify`). The Go toolchain version is pinned in `go.mod`.
+- **grpcurl** — optional. The manifest validator uses it to introspect the gRPC
+  endpoints; when it is not installed the validator falls back to a dockerized
+  grpcurl, so you only need to install it where that fallback cannot reach the
+  container (notably Linux CI runners — which is why the shipped workflow installs
+  it).
+
+The container image itself is `FROM scratch` and needs none of this at runtime.
+
 ## What it does
 
 - Serves the gRPC `RTBExtensionPoint` `GetMutations` RPC. Every response echoes
@@ -220,8 +233,9 @@ guidance to pick a minimal base image.
 **never publishes**: it builds the image, validates that the image matches
 `manifest/manifest.json` (labels, declared endpoints, and the required
 `rpc_server_duration` metric contract), runs a `trivy` CVSS-9 vulnerability scan, and
-exercises both auction lifecycles against the no-op contract. It needs only Docker,
-Go, Python 3, and `grpcurl`.
+exercises both auction lifecycles against the no-op contract. It needs Docker, Go,
+and Python 3; `grpcurl` is optional (the validator falls back to a dockerized grpcurl
+when it is not installed — see Prerequisites).
 
 A ready-to-run GitHub Actions workflow ships at
 [.github/workflows/ci.yml](.github/workflows/ci.yml) and calls `make verify` on every
